@@ -1,3 +1,16 @@
+# Data directory: ignore everything except the processed/ Parquet caches.
 data/*
+!data/dime_fec_final_project/
+data/dime_fec_final_project/*
+!data/dime_fec_final_project/processed/
+!data/dime_fec_final_project/processed/**
+# Leftover staging directories from an interrupted Parquet write -- never commit these.
+data/dime_fec_final_project/processed/_tmp_*
+
 .ipynb_checkpoints/*
 remove/*
+
+# OS / Python hygiene
+.DS_Store
+__pycache__/
+*.pyc
