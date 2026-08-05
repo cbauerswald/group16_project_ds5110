@@ -14,6 +14,7 @@ This project investigates whether we can predict the political party (Democrat, 
 
 
 ## Project Structure
+```
 ds5110_final_project/
 ├── eda.py # Aggregate-level model (candidate/recipient prediction)
 ├── final_proj.py # Transaction-level model (donor/contribution prediction)
@@ -25,7 +26,7 @@ ds5110_final_project/
 │ ├── fec/ # FEC data
 │ └── processed/ # Processed Parquet files
 └── final_project_outputs/ # Model outputs and evaluation results
-
+```
 ## Models Implemented
 
 ### 1. Aggregate-Level Model (`eda.py`)
