@@ -1,0 +1,16 @@
+# Core data science libraries
+pandas>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+scipy>=1.10.0
+
+# Apache Spark and ML libraries
+pyspark>=3.4.0
+
+# Jupyter notebook support
+jupyter>=1.0.0
+notebook>=7.0.0
+
+# Additional utilities
+ipython>=8.0.0
+ipykernel>=6.0.0

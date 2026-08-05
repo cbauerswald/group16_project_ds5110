@@ -15,27 +15,27 @@ This project investigates whether we can predict the political party (Democrat, 
 
 ## Project Structure
 ```
-ds5110_final_project/
-├── eda.py # Aggregate-level model (candidate/recipient prediction)
-├── final_proj.py # Transaction-level model (donor/contribution prediction)
+group16_project_ds5110/
+├── EDA.ipynb # Aggregate-level model (candidate/recipient prediction)
+├── Final_Project.ipynb # Transaction-level model (donor/contribution prediction)
 ├── README.md # Project documentation
 ├── requirements.txt # Python package dependencies
-├── data/
-│ └── dime_fec_final_project/ # Data directory (ignored by git)
-│ ├── contrib/ # Contribution data
-│ ├── fec/ # FEC data
-│ └── processed/ # Processed Parquet files
-└── final_project_outputs/ # Model outputs and evaluation results
+├── .gitignore # Git ignore rules
+└── data/
+    └── dime_fec_final_project/ # Data directory (ignored by git)
+        ├── contrib/ # Contribution data
+        ├── fec/ # FEC data
+        └── processed/ # Processed Parquet files
 ```
 ## Models Implemented
 
-### 1. Aggregate-Level Model (`eda.py`)
+### 1. Aggregate-Level Model (`EDA.ipynb`)
 
 **Purpose**: Predict party affiliation of candidates/recipients using aggregate fundraising data
 
 **Data Sources**:
-- Stanford DIME recipients/candidates aggregate table
-- FEC Candidate Summary
+- Stanford DIME recipients/candidates aggregate table (1979-2024)
+- FEC Candidate Summary (2018, 2020, 2022, 2024 cycles)
 - FEC Candidate Master
 - FEC Candidate-Committee Linkage
 - FEC Committee Master / Committee Summary
@@ -51,7 +51,14 @@ ds5110_final_project/
 2. Full Multinomial Logistic Regression
 3. Random Forest
 
-### 2. Transaction-Level Model (`final_proj.py`)
+**Key Features**:
+- Multi-year analysis (2018-2024)
+- Automatic constant/all-zero column removal
+- K-fold cross-validation with hyperparameter tuning
+- Model evaluation with accuracy, precision, recall, F1, confusion matrices, and one-vs-rest AUROC
+- Random Forest feature importance and Logistic Regression coefficient importance analysis
+
+### 2. Transaction-Level Model (`Final_Project.ipynb`)
 
 **Purpose**: Predict recipient party from individual contribution characteristics
 
@@ -75,12 +82,14 @@ ds5110_final_project/
 1. **Occupation bucketing**: Free-text occupation collapsed to 250 buckets using:
    - Top-N frequency selection
    - Fuzzy matching (Levenshtein distance)
-   - Synonym mapping
+   - Synonym mapping (100+ synonym mappings defined)
    - Fit on training data only to prevent leakage
 
 2. **Donor-grouped split**: 80/20 train/test split by donor ID (same donor never appears in both sets)
 
 3. **Log transformation**: `log1p(amount)` to handle right-skewed distribution
+
+4. **Numeric bucketing for Naive Bayes**: Contribution amount bucketed into discrete rungs [0, 50, 500, 1000, 10000, 100000, 500000]
 
 **Models**:
 1. Benchmark Logistic Regression (amount only)
@@ -88,19 +97,25 @@ ds5110_final_project/
 3. Random Forest (all features)
 4. Naive Bayes (all features)
 
+**Key Features**:
+- Donor-level train/test split to prevent data leakage
+- Comprehensive occupation preprocessing pipeline
+- K-fold cross-validation with hyperparameter tuning
+- Model evaluation with accuracy, precision, recall, F1, confusion matrices, and one-vs-rest AUROC
+- Random Forest feature importance and Logistic Regression coefficient importance analysis
+
 ## Major Functionality
 
-### Data Processing
+### Data Processing (Final_Project.ipynb)
 
 | Function | Purpose |
 |----------|---------|
 | `download_if_missing()` | Download data files from URLs if not present locally |
 | `decompress_gz_if_needed()` | Decompress .gz files to .csv for Spark reading |
-| `read_csv_strings()` | Read CSV with all columns as strings and deduplicate names |
 | `build_contrib_model_table()` | Build the main transaction-level DataFrame |
 | `add_donor_split()` | Split data by donor ID to prevent leakage |
 
-### Feature Engineering
+### Feature Engineering (Final_Project.ipynb)
 
 | Function | Purpose |
 |----------|---------|
@@ -108,9 +123,9 @@ ds5110_final_project/
 | `apply_synonym_map()` | Map synonyms to canonical occupation labels |
 | `build_fuzzy_category_map()` | Create fuzzy matching rules using Levenshtein distance |
 | `build_bucket_with_fuzzy_match()` | Full occupation bucketing pipeline (fit on train, apply to all) |
-| `build_preprocess_stages()` | Create Spark ML pipeline stages (StringIndexer, OneHotEncoder, VectorAssembler) |
+| `build_preprocess_stages()` | Create Spark ML pipeline stages (StringIndexer, OneHotEncoder, VectorAssembler, Bucketizer) |
 
-### Modeling & Evaluation
+### Modeling & Evaluation (Both Notebooks)
 
 | Function | Purpose |
 |----------|---------|
@@ -128,6 +143,7 @@ ds5110_final_project/
 
 - Python 3.8+
 - Apache Spark 3.4+ (local mode or cluster)
+- Jupyter Notebook
 - 16GB+ RAM recommended
 - 50GB+ free disk space for data
 
@@ -135,5 +151,84 @@ ds5110_final_project/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/ds5110_final_project.git
-cd ds5110_final_project
+git clone https://github.com/cbauerswald/group16_project_ds5110.git
+cd group16_project_ds5110
+```
+
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Start Jupyter Notebook:
+```bash
+jupyter notebook
+```
+
+### Usage
+
+**For Aggregate-Level Model (EDA.ipynb):**
+- Open `EDA.ipynb` in Jupyter
+- Run cells sequentially to perform EDA and build aggregate-level models
+- The notebook will automatically download required DIME and FEC data
+- Models include Logistic Regression and Random Forest with cross-validation
+
+**For Transaction-Level Model (Final_Project.ipynb):**
+- Open `Final_Project.ipynb` in Jupyter
+- Run cells sequentially to build donor-level prediction models
+- The notebook will download the DIME contribDB file (2012 cycle, 10% sample)
+- Models include Logistic Regression, Random Forest, and Naive Bayes
+- Features advanced occupation bucketing with fuzzy matching
+
+### Configuration
+
+Both notebooks have configuration sections at the top where you can adjust:
+- Data download settings
+- Model parameters
+- Cross-validation settings
+- Performance optimization options
+- Debugging flags
+
+## Data Sources
+
+### Stanford DIME (Database on Ideology, Money in Politics, and Elections)
+- **Recipients/Candidates Aggregate**: Comprehensive recipient-level data (1979-2024)
+- **Itemized Contributions (contribDB)**: Individual contribution records with donor information
+- **Ideology Scores**: cfscore measurements for political ideology
+
+### Federal Election Commission (FEC)
+- **Candidate Summary**: Financial summaries for political candidates
+- **Candidate Master**: Candidate demographic and contact information
+- **Candidate-Committee Linkage**: Connections between candidates and committees
+- **Committee Master/Summary**: Committee financial and organizational data
+
+## Key Features
+
+### Robust Data Handling
+- Automatic data downloading and caching
+- Parquet file optimization for faster subsequent runs
+- Configurable memory and disk usage limits
+- Automatic handling of compressed files (.gz, .zip)
+
+### Advanced Feature Engineering
+- Occupation text normalization and synonym mapping
+- Fuzzy matching for occupation categorization
+- Donor-level train/test splitting to prevent leakage
+- Log transformation for skewed distributions
+- Automatic removal of constant/zero columns
+
+### Comprehensive Model Evaluation
+- Multi-metric evaluation (accuracy, precision, recall, F1, AUROC)
+- Confusion matrices for all models
+- Cross-validation with hyperparameter tuning
+- Feature importance analysis
+- One-vs-rest ROC analysis for multiclass problems
+
+## Project Outcomes
+
+This project demonstrates that:
+1. Aggregate-level fundraising data can effectively predict candidate party affiliation
+2. Donor-level features (occupation, location, amount) provide predictive signal for recipient party
+3. Feature engineering techniques like occupation bucketing significantly improve model performance
+4. Random Forest models generally outperform logistic regression for this classification task
+5. Proper train/test splitting by donor ID is crucial to prevent data leakage in contribution analysis
